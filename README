@@ -26,7 +26,7 @@ over complexity or premature optimization.
 
 ## 🧱 Architecture Overview
 
-![Image Alt](https://github.com/CAUCORASEKO/ashby-style-platform/blob/main/docs/architecture.png?raw=true)
+![Architecture Diagram](docs/architecture.png)
 
 ### High-level flow
 
