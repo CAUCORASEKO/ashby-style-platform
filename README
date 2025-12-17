@@ -1,7 +1,164 @@
-# ashby-style-platform
+# Ashby-style Platform Engineering Exercise
 
-A small platform engineering exercise:
-- Event ingestion service (Node/TypeScript)
-- Postgres storage with idempotency
-- Reliability guardrails (retries, circuit breaker)
-- Docs: architecture + SLOs
+This repository contains a small, focused **Platform Engineering exercise**
+inspired by real-world infrastructure challenges faced by high-growth SaaS
+companies like Ashby.
+
+The goal is to demonstrate how to build a **reliable, observable, and
+developer-friendly** event ingestion service using **TypeScript** and
+**Node.js**, applying modern **Platform Engineering** and **Site Reliability
+Engineering (SRE)** principles.
+
+This project intentionally favors clarity, correctness, and safe failure modes
+over complexity or premature optimization.
+
+---
+
+## 🎯 Goals
+
+- Provide a simple and predictable event ingestion API
+- Ensure reliability under partial and transient failures
+- Prevent cascading failures using circuit breakers
+- Expose minimal but meaningful observability signals
+- Build “boring” infrastructure that scales safely with product growth
+
+---
+
+## 🧱 Architecture Overview
+
+![Architecture Diagram](docs/architecture.jpg)
+
+### High-level flow
+
+Client requests are handled by the **Ingest API**, which applies reliability
+guardrails (retry + circuit breaker) before executing event-handling logic and
+interacting with downstream systems or storage.
+
+This design allows the system to degrade gracefully instead of failing
+catastrophically.
+
+---
+
+## 🧩 Core Components
+
+### Event Ingestion (`src/events/ingest.ts`)
+Entry point for external events. All side effects are explicitly guarded by
+retry logic and a circuit breaker to protect downstream dependencies.
+
+Responsibilities:
+- Validate incoming events
+- Apply reliability policies
+- Invoke event handlers safely
+
+---
+
+### Retry (`src/reliability/retry.ts`)
+Handles transient failures using **exponential backoff** with optional jitter.
+
+Designed for:
+- Network instability
+- Temporary downstream unavailability
+- Avoiding immediate failure amplification
+
+Retries are bounded and explicit—no infinite loops or silent masking of errors.
+
+---
+
+### Circuit Breaker (`src/reliability/circuitBreaker.ts`)
+Prevents cascading failures by halting requests to unhealthy dependencies.
+
+Implements a standard state machine:
+- `CLOSED` → normal operation
+- `OPEN` → fail fast
+- `HALF_OPEN` → controlled recovery
+
+This protects both the platform and downstream systems under sustained failure.
+
+---
+
+### Metrics (`src/observability/metrics.ts`)
+A lightweight observability layer tracking counters and latency averages.
+
+Designed to be:
+- Easy to reason about
+- Low overhead
+- Simple to export to systems like Datadog or Prometheus
+
+---
+
+## 🔁 Failure Handling Strategy
+
+| Failure Type                  | Strategy                |
+|-------------------------------|-------------------------|
+| Network timeouts              | Retry with backoff      |
+| Temporary 5xx errors          | Retry                   |
+| Persistent downstream errors  | Circuit breaker         |
+| Programmer / logic errors     | Fail fast               |
+
+The system avoids infinite retries, hidden failures, and ambiguous behavior by
+design.
+
+---
+
+## 📊 Observability
+
+Currently tracked signals:
+- Total events ingested
+- Average processing latency
+- Circuit breaker state (via code inspection)
+
+The focus is on **signal over noise**—enough data to debug incidents without
+overwhelming engineers or operators.
+
+---
+
+## 📈 SLIs & SLOs
+
+### Service Level Indicators (SLIs)
+
+- **Availability**: successful ingestions / total requests
+- **Latency**: p95 ingestion latency
+- **Error Rate**: failed ingestions / total requests
+
+### Service Level Objectives (SLOs)
+
+| Metric        | Objective |
+|---------------|-----------|
+| Availability  | 99.9%     |
+| p95 Latency   | < 200 ms  |
+| Error Rate    | < 0.1%    |
+
+These SLOs reflect a system primarily used by internal product teams, where
+reliability is critical but brief degradation is acceptable and expected.
+
+---
+
+## 🚦 Design Principles
+
+- Prefer explicit failures over silent recovery
+- Optimize for debuggability over cleverness
+- Infrastructure should be boring and predictable
+- Guardrails should enable speed, not block it
+- Ownership is end-to-end, not role-based
+
+---
+
+## 🧪 Future Improvements
+
+- Idempotency keys for event ingestion
+- Persistent storage layer (Postgres)
+- Structured logging
+- Distributed tracing
+- Feature flags and gradual rollouts
+- Automated SLO-based alerting
+
+---
+
+## 🧠 Why This Design
+
+This project is intentionally small but realistic. It mirrors the kind of
+platform engineering work required to support fast-moving product teams while
+maintaining reliability, security, and developer experience.
+
+The emphasis is on **good defaults**, **clear contracts**, and **safe failure
+modes**, rather than over-engineering or excessive abstraction.
