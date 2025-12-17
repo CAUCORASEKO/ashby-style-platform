@@ -1,0 +1,17 @@
+{
+  "name": "ashby-style-platform",
+  "version": "1.0.0",
+  "description": "A small platform engineering exercise: - Event ingestion service (Node/TypeScript) - Postgres storage with idempotency - Reliability guardrails (retries, circuit breaker) - Docs: architecture + SLOs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
